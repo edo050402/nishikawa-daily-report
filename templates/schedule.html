@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{tr('schedule_title')}}{% endblock %}
+{% block content %}
+<div class="pagehead schedule-head">
+  <div>
+    <h1>{{tr('schedule_title')}}</h1>
+    <p class="muted">{{tr('schedule_desc')}}</p>
+    <p class="muted">{{tr('schedule_last_sync')}}：{{last_sync or tr('schedule_not_synced')}}</p>
+  </div>
+  <form method="post" action="{{url_for('schedule_import')}}">
+    <input type="hidden" name="date" value="{{selected_date}}">
+    <button class="primary" type="submit">{{tr('schedule_refresh')}}</button>
+  </form>
+</div>
+
+<div class="card schedule-picker-card">
+  <form method="get" class="schedule-picker">
+    <a class="day-nav" href="{{url_for('schedule_view',date=prev_date)}}" aria-label="previous">‹</a>
+    <label>{{tr('schedule_date')}}
+      <input type="date" name="date" value="{{selected_date}}">
+    </label>
+    <button class="primary" type="submit">{{tr('show')}}</button>
+    <a class="secondary button" href="{{url_for('schedule_view')}}">{{tr('today')}}</a>
+    <a class="day-nav" href="{{url_for('schedule_view',date=next_date)}}" aria-label="next">›</a>
+  </form>
+</div>
+
+<div class="schedule-grid">
+  <section class="card">
+    <div class="sectiontitle schedule-section-title">
+      <div>
+        <h2>{{tr('work_schedule')}}</h2>
+        <span>{{selected_date}}</span>
+      </div>
+      <strong class="schedule-count">{{tr('scheduled_people')}} {{work_rows|length}}{{tr('people')}}</strong>
+    </div>
+    {% if work_error %}
+      <div class="schedule-error">{{tr('excel_read_error')}}：{{work_error}}</div>
+    {% elif work_rows %}
+      <div class="work-schedule-list">
+      {% for row in work_rows %}
+        <article class="person-schedule">
+          <div class="person-name">{{row.name}}</div>
+          <div class="person-items">
+            {% for item in row['items'] %}<div class="schedule-item">{{item|replace('\n','<br>')|safe}}</div>{% endfor %}
+          </div>
+        </article>
+      {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">{{tr('no_work_schedule')}}</div>
+    {% endif %}
+    <div class="source-note">{{tr('source_file')}}：{{work_file}} / 社内</div>
+  </section>
+
+  <section class="card">
+    <div class="sectiontitle schedule-section-title">
+      <div>
+        <h2>{{tr('vehicle_schedule')}}</h2>
+        <span>{{selected_date}}</span>
+      </div>
+    </div>
+    {% if vehicle_error %}
+      <div class="schedule-error">{{tr('excel_read_error')}}：{{vehicle_error}}</div>
+    {% elif vehicle_rows %}
+      <div class="vehicle-list">
+      {% for v in vehicle_rows %}
+        <article class="vehicle-card {% if v.available %}is-free{% else %}is-busy{% endif %}">
+          <div class="vehicle-main">
+            <strong>{{v.vehicle}}</strong>
+            {% if v.plate %}<span>{{v.plate}}</span>{% endif %}
+          </div>
+          <div class="vehicle-user">
+            {% if v.available %}
+              <span class="vehicle-status free">{{tr('available')}}</span>
+            {% else %}
+              <span class="vehicle-status busy">{{tr('in_use_plan')}}</span>
+              <strong>{{v.assigned}}</strong>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">—</div>
+    {% endif %}
+    <div class="source-note">{{tr('source_file')}}：{{vehicle_file}}</div>
+  </section>
+</div>
+{% endblock %}

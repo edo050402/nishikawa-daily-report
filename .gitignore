@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+
+daily_report
+daily_report.db
+*.db
+*.sqlite
+*.sqlite3
+
+excel/
+schedule_excel/
+
+.env
+.venv/
+venv/
+
+*.log
